@@ -21,9 +21,50 @@ $ipinfo_token = '7464e27274d405';
 // VISITOR IP
 // -------------------------------------
 
-$ip = $_SERVER['REMOTE_ADDR'] ?? '';
+// -------------------------------------
+// VISITOR IP - Render / Cloudflare
+// -------------------------------------
+
+$ip = '';
+
+// Cloudflare visitor IP
+if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+
+    $candidate = trim($_SERVER['HTTP_CF_CONNECTING_IP']);
+
+    if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+        $ip = $candidate;
+    }
+}
+
+// Render / reverse proxy fallback
+if ($ip === '' && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+
+    $forwarded_ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+
+    foreach ($forwarded_ips as $forwarded_ip) {
+
+        $candidate = trim($forwarded_ip);
+
+        if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+            $ip = $candidate;
+            break;
+        }
+    }
+}
+
+// Direct-server fallback
+if ($ip === '') {
+
+    $candidate = $_SERVER['REMOTE_ADDR'] ?? '';
+
+    if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+        $ip = $candidate;
+    }
+}
 
 $country_code = 'XX';
+
 
 
 // -------------------------------------
